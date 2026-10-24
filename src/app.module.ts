@@ -32,6 +32,7 @@ import * as mysql2 from 'mysql2';
     // }),
     TypeOrmModule.forRoot({
       type: 'mysql',
+      driver: mysql2,
       host: process.env.DB_HOST,
       port: Number(process.env.DB_PORT),
       username: process.env.DB_USERNAME,
