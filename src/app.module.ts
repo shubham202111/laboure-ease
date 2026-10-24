@@ -8,9 +8,9 @@ import { UserSitesModule } from './user-sites/user-sites.module.js';
 import * as mysql2 from 'mysql2';
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
+    // ConfigModule.forRoot({
+    //   isGlobal: true,
+    // }),
 
     // TypeOrmModule.forRootAsync({
     //   imports: [ConfigModule],
@@ -30,22 +30,22 @@ import * as mysql2 from 'mysql2';
     //     },
     //   }),
     // }),
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      driver: mysql2,
-      host: process.env.DB_HOST,
-      port: Number(process.env.DB_PORT),
-      username: process.env.DB_USERNAME,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_DATABASE,
-      autoLoadEntities: true,
-      synchronize: true,
-      ssl: {
-        rejectUnauthorized: false, 
-      },
-    }),
-    UsersModule,
-    UserSitesModule,
+    // TypeOrmModule.forRoot({
+    //   type: 'mysql',
+    //   driver: mysql2,
+    //   host: process.env.DB_HOST,
+    //   port: Number(process.env.DB_PORT),
+    //   username: process.env.DB_USERNAME,
+    //   password: process.env.DB_PASSWORD,
+    //   database: process.env.DB_DATABASE,
+    //   autoLoadEntities: true,
+    //   synchronize: true,
+    //   ssl: {
+    //     rejectUnauthorized: false, 
+    //   },
+    // }),
+    // UsersModule,
+    // UserSitesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
