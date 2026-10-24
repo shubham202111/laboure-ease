@@ -22,8 +22,11 @@ import { UserSitesModule } from './user-sites/user-sites.module.js';
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_DATABASE'),
-        autoLoadEntities: true, 
-        synchronize: true,      
+        autoLoadEntities: true,
+        synchronize: true,
+        ssl: {
+          rejectUnauthorized: false, 
+        },
       }),
     }),
     UsersModule,
@@ -32,4 +35,4 @@ import { UserSitesModule } from './user-sites/user-sites.module.js';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
