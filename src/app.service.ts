@@ -2,8 +2,6 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 @Injectable()
 export class AppService implements OnModuleInit {
-// export class AppService  {
-
   constructor(private dataSource: DataSource) {}
 
   onModuleInit() {

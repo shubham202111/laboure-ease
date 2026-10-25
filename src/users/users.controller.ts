@@ -1,37 +1,63 @@
-import { Controller, Get, Post, Patch, Delete, Param, Body, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, Body, ParseIntPipe,Put, BadRequestException } from '@nestjs/common';
 import { UsersService } from './users.service.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
+import { successResponseWithData } from '../common/utils/response.helper.js';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 
   @Post('/create')
-  createSiteUser(@Body() dto: CreateUserDto) {
-    return this.usersService.createUser(dto);
+  async createSiteUser(@Body() dto: CreateUserDto) {
+    try{
+      const user = await this.usersService.createUser(dto);
+      return successResponseWithData(user,'User created successfully', 200);
+    } catch (error) {
+      throw new BadRequestException('Failed to create user');
+    }
   }
 
   @Get('/list')
-  fetchSiteUsers() {
-    return this.usersService.findAll();
+  async fetchSiteUsers() {
+    try{
+      const users = await this.usersService.findAll();
+      return successResponseWithData(users, 'Users fetched successfully', 200);
+    } catch (error) {
+      throw new BadRequestException('Failed to fetch users');
+    }
   }
 
-  @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.findOne(id);
+  @Get('/list/:id')
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    try{
+      const user = await this.usersService.findOne(id);
+      return successResponseWithData(user, 'User fetched successfully', 200);
+    } catch (error) {
+      throw new BadRequestException('Failed to fetch user');
+    }
   }
 
-  // @Patch(':id')
-  // update(
-  //   @Param('id', ParseIntPipe) id: number,
-  //   @Body() dto: UpdateUserDto,
-  // ) {
-  //   return this.usersService.update(id, dto);
-  // }
+  @Put('/update/:id')
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateUserDto,
+  ) {
+    try{
+      const user = await this.usersService.update(id, dto);
+      return successResponseWithData(user, 'User updated successfully', 200);
+    } catch (error) {
+      throw new BadRequestException('Failed to update user');
+    }
+  }
 
-  // @Delete(':id')
-  // remove(@Param('id', ParseIntPipe) id: number) {
-  //   return this.usersService.remove(id);
-  // }
+  @Delete('/delete/:id')
+  async remove(@Param('id', ParseIntPipe) id: number) {
+    try{
+      await this.usersService.remove(id);
+      return successResponseWithData(null, 'User deleted successfully', 200);
+    } catch (error) {
+      throw new BadRequestException('Failed to delete user');
+    }
+  }
 }

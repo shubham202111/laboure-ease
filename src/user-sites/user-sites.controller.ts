@@ -40,7 +40,7 @@ export class UserSitesController {
     }
   }
 
-  @Put(':id')
+  @Put('/update/:id')
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateUserSiteDto,
@@ -53,10 +53,10 @@ export class UserSitesController {
     }
   }
 
-  @Delete(':id')
+  @Delete('/delete/:id')
   async remove(@Param('id', ParseIntPipe) id: number) {
     try {
-      const result = await this.userSitesService.remove(id);
+      const result = await this.userSitesService.removeSite(id);
       return successResponseWithData(result, 'Site deleted successfully', 200);
     } catch (error) {
       throw new BadRequestException('Failed to delete site');

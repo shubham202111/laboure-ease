@@ -66,6 +66,7 @@ export class UserSitesService {
     if (siteName) {
       whereCondition.siteName = Like(`%${siteName}%`);
     }
+    whereCondition.status = UserStatus.ACTIVE;
 
     if (id) {
       whereCondition.id = id;
@@ -108,7 +109,7 @@ export class UserSitesService {
 
   async findOne(id: number) {
     const site = await this.siteRepo.findOne({
-      where: { id },
+      where: { id , status: UserStatus.ACTIVE },
       relations: { supervisor: true },
       select: {
         id: true,
@@ -135,7 +136,7 @@ export class UserSitesService {
   }
 
   async updateSite(id: number, dto: UpdateUserSiteDto) {
-    const site = await this.siteRepo.findOne({ where: { id } });
+    const site = await this.siteRepo.findOne({ where: { id , status: UserStatus.ACTIVE } });
 
     if (!site) {
       throw new NotFoundException('Site not found');
@@ -156,25 +157,17 @@ export class UserSitesService {
     return this.siteRepo.save(site);
   }
 
-  async remove(id: number) {
-    const site = await this.siteRepo.findOne({ where: { id } });
-
-    if (!site) {
-      throw new NotFoundException('Site not found');
-    }
-
-    const assignedUsers = await this.userRepo.count({
-      where: { user_site_id: id },
+  async removeSite(id: number) {
+    const site = await this.siteRepo.findOne({
+      where: { id },
     });
 
-    if (assignedUsers > 0) {
-      throw new BadRequestException(
-        'Reassign users before deleting this site',
-      );
-    }
+  if (!site) {
+    throw new NotFoundException('Site not found');
+  }
 
-    await this.siteRepo.delete(id);
+  site.status = UserStatus.INACTIVE;
 
-    return { message: 'Site deleted successfully' };
+  return await this.siteRepo.save(site);
   }
 }
