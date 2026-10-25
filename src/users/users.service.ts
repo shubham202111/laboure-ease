@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 
 import { User } from './entities/user.entity.js';
@@ -75,6 +75,15 @@ export class UsersService {
   async findAll() {
     const users = await this.userRepo.find({
       order: { id: 'DESC', status:UserStatus.ACTIVE },
+    });
+
+    return users.map((user) => this.safeUser(user));
+  }
+
+  async findNonAssignedSupervisors() {
+    const users = await this.userRepo.find({
+      where: { user_site_id:  IsNull(), status: UserStatus.ACTIVE, role: UserRole.SUPERVISOR },
+      order: { id: 'DESC' },
     });
 
     return users.map((user) => this.safeUser(user));

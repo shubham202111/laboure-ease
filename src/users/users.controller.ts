@@ -28,6 +28,16 @@ export class UsersController {
     }
   }
 
+  @Get('/supervisor/list')
+  async fetchSupervisorUsers() {
+    try{
+      const users = await this.usersService.findNonAssignedSupervisors();
+      return successResponseWithData(users, 'Users fetched successfully', 200);
+    } catch (error) {
+      throw new BadRequestException('Failed to fetch users');
+    }
+  }
+
   @Get('/list/:id')
   async findOne(@Param('id', ParseIntPipe) id: number) {
     try{
