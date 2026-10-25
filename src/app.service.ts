@@ -13,7 +13,10 @@ export class AppService  {
   //     console.log('Failed to connect to the MySQL database.');
   //   }
   // }
-  getHello(): string {
-    return 'Hello World!';
+  getHello(): any {
+    return {
+      success: true,
+      message: 'Labour Ease API is running',
+    };
   }
 }
