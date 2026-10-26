@@ -32,12 +32,14 @@ export class UsersService {
   }
 
   async createUser(dto: CreateUserDto) {
-    const existingUser = await this.userRepo.findOne({
-      where: { email: dto.email },
-    });
+    if (dto.email) {
+      const existingUser = await this.userRepo.findOne({
+        where: { email: dto.email },
+      });
 
-    if (existingUser) {
-      throw new ConflictException('Email already exists');
+      if (existingUser) {
+        throw new ConflictException('Email already exists');
+      }
     }
 
     let siteId: number | null = null;
@@ -62,10 +64,14 @@ export class UsersService {
 
     const { user_site_id, ...data } = dto;
 
+    const hashedPassword = dto.password
+      ? await bcrypt.hash(dto.password, 12)
+      : null;
+
     const user = this.userRepo.create({
       ...data,
-      password: await bcrypt.hash(dto.password, 12),
-      displayName : `${dto.firstName} ${dto.lastName}`,
+      password: hashedPassword,
+      displayName: `${dto.firstName ?? ''} ${dto.lastName ?? ''}`.trim(),
       status: UserStatus.ACTIVE,
       user_site_id: siteId,
     });

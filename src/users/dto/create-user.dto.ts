@@ -10,6 +10,7 @@ export class CreateUserDto {
   @MaxLength(100)
   lastName: string;
 
+  @IsOptional()
   @IsString()
   @MaxLength(100)
   displayName: string;
