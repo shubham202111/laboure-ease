@@ -65,6 +65,7 @@ export class UsersService {
     const user = this.userRepo.create({
       ...data,
       password: await bcrypt.hash(dto.password, 12),
+      displayName : `${dto.firstName} ' ' + ${dto.lastName} `,
       status: UserStatus.ACTIVE,
       user_site_id: siteId,
     });

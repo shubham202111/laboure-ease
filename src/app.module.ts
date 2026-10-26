@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module.js';
 import { UserSitesModule } from './user-sites/user-sites.module.js';
 import * as mysql2 from 'mysql2';
+import { AuthModule } from './auth/auth.module.js';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -46,6 +47,7 @@ import * as mysql2 from 'mysql2';
     }),
     UsersModule,
     UserSitesModule,
+    AuthModule
   ],
   controllers: [AppController],
   providers: [AppService],
