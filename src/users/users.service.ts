@@ -65,7 +65,7 @@ export class UsersService {
     const user = this.userRepo.create({
       ...data,
       password: await bcrypt.hash(dto.password, 12),
-      displayName : `${dto.firstName} ' ' + ${dto.lastName} `,
+      displayName : `${dto.firstName} ${dto.lastName}`,
       status: UserStatus.ACTIVE,
       user_site_id: siteId,
     });
@@ -134,48 +134,46 @@ export class UsersService {
       if (!site) {
         throw new BadRequestException('Active site not found');
       }
-
       nextSiteId = site.id;
     }
 
-    if (
-      dto.role !== undefined &&
-      dto.role !== UserRole.LABOURER &&
-      dto.user_site_id === undefined
-    ) {
+    if (dto.role !== undefined && dto.role !== UserRole.LABOURER && dto.user_site_id === undefined) {
       nextSiteId = null;
     }
 
     const { user_site_id, password, ...fields } = dto;
+    const updatedFirstName = dto.firstName ?? user.firstName;
+    const updatedLastName = dto.lastName ?? user.lastName;
+    const displayName = `${updatedFirstName} ${updatedLastName}`;
 
-    Object.assign(user, fields, { user_site_id: nextSiteId });
+    Object.assign(user, fields, {displayName, user_site_id: nextSiteId });
 
     if (password) {
       user.password = await bcrypt.hash(password, 12);
     }
-
     return this.safeUser(await this.userRepo.save(user));
   }
 
   async remove(id: number) {
-    const user = await this.userRepo.findOne({ where: { id ,status:UserStatus.ACTIVE} });
+  const user = await this.userRepo.findOne({ 
+    where: { id, status: UserStatus.ACTIVE } 
+  });
 
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    const supervisedSites = await this.siteRepo.count({
-      where: { supervisor: { id } },
-    });
-
-    if (supervisedSites > 0) {
-      throw new BadRequestException(
-        'Reassign or remove this supervisor’s sites before deleting the user',
-      );
-    }
-
-    await this.userRepo.delete(id);
-
-    return { message: 'User deleted successfully' };
+  if (!user) {
+    throw new NotFoundException('User not found');
   }
+
+  const supervisedSites = await this.siteRepo.count({
+    where: { supervisor: { id } },
+  });
+
+  if (supervisedSites > 0) {
+    throw new BadRequestException(
+      'Reassign or remove this supervisor’s sites before deactivating the user',
+    );
+  }
+
+  user.status = UserStatus.INACTIVE;
+  return await this.userRepo.save(user);
+}
 }
