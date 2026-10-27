@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, ForbiddenException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -7,6 +7,7 @@ import { User } from '../users/entities/user.entity.js';
 import { LoginDto } from './dto/login.dto.js';
 import { UserStatus } from '../enums/user-status.enum.js';
 import { UserRole } from '../enums/user-role.enum.js';
+import { successResponseWithData ,successResponse,failureResponse,failureResponseWithError } from '../common/utils/response.helper.js';
 
 @Injectable()
 export class AuthService {
@@ -26,18 +27,17 @@ export class AuthService {
       .getOne();
 
     if (!user || !user.password) {
-      throw new UnauthorizedException('Invalid email or password');
+      return failureResponse('Invalid user credentials')
     }
 
   if (user.status !== UserStatus.ACTIVE) {
-      throw new ForbiddenException('Your account is inactive or suspended');
+      return failureResponse('Your account is inactive or suspended')
     }
 
    const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid email or password');
+      return failureResponse('Incorrect Password')
     }
-
    const payload = {
       sub: user.id,
       email: user.email,

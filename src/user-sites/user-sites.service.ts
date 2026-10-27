@@ -9,6 +9,7 @@ import { UserStatus } from '../enums/user-status.enum.js';
 
 import { CreateUserSiteDto, SiteListDto } from './dto/create-user-site.dto.js';
 import { UpdateUserSiteDto } from './dto/update-user-site.dto.js';
+import { successResponseWithData ,successResponse,failureResponse,failureResponseWithError } from '../common/utils/response.helper.js';
 
 @Injectable()
 export class UserSitesService {
@@ -20,7 +21,7 @@ export class UserSitesService {
     private readonly userRepo: Repository<User>,
   ) {}
 
-  private async getSupervisor(id: number) {
+  private async getSupervisor(id: number, excludeSiteId?: number) {
     const supervisor = await this.userRepo.findOne({
       where: {
         id,
@@ -30,11 +31,25 @@ export class UserSitesService {
     });
 
     if (!supervisor) {
-      throw new BadRequestException(
-        'Active supervisor not found',
-      );
+      throw new BadRequestException('Active supervisor not found');
     }
 
+    const query = this.siteRepo.createQueryBuilder('site')
+      .leftJoinAndSelect('site.supervisor', 'supervisor')
+      .where('supervisor.id = :supervisorId', { supervisorId: supervisor.id })
+      .andWhere('site.status = :status', { status: UserStatus.ACTIVE });
+
+    if (excludeSiteId) {
+      query.andWhere('site.id != :excludeSiteId', { excludeSiteId });
+    }
+
+    const existingSiteAssignment = await query.getOne();
+
+    if (existingSiteAssignment) {
+      throw new BadRequestException(
+        `Supervisor is already assigned to active site: "${existingSiteAssignment.siteName}"`,
+      );
+    }
     return supervisor;
   }
 
@@ -79,6 +94,7 @@ export class UserSitesService {
         id: true,
         siteName: true,
         siteAddress: true,
+        startDate: true,
         status: true,
         createdAt: true,
         updatedAt: true,
@@ -95,11 +111,35 @@ export class UserSitesService {
       take: limitNum,
     });
 
+    if (data.length === 0) {
+      return failureResponse('sites data not available.')
+    }
+    const siteIds = data.map((site) => site.id);
+
+    const labourCounts = await this.userRepo
+      .createQueryBuilder('user')
+      .select('user.user_site_id', 'siteId')
+      .addSelect('COUNT(user.id)', 'count')
+      .where('user.user_site_id IN (:...siteIds)', { siteIds })
+      .andWhere('user.role = :role', { role: UserRole.LABOURER })
+      .groupBy('user.user_site_id')
+      .getRawMany();
+
+    const countMap = new Map();
+    labourCounts.forEach((item) => {
+      countMap.set(Number(item.siteId), Number(item.count));
+    });
+
+    const formattedData = data.map((site) => ({
+      ...site,
+      totalLabours: countMap.get(site.id) || 0,
+    }));
+
     return {
-      data,
+      data: formattedData,
       metaData: {
-        totalItems: total, 
-        itemCount: data.length, 
+        totalItems: total,
+        itemCount: formattedData.length,
         itemsPerPage: limitNum,
         totalPages: Math.ceil(total / limitNum),
         currentPage: pageNum,
@@ -116,6 +156,7 @@ export class UserSitesService {
         siteName: true,
         siteAddress: true,
         status: true,
+        startDate:true,
         createdAt: true,
         updatedAt: true,
         supervisor: {
@@ -129,17 +170,42 @@ export class UserSitesService {
     });
 
     if (!site) {
-      throw new NotFoundException('Site not found');
+      return failureResponse('Site not found')
     }
-
     return site;
+  }
+
+  async getSiteData() {
+    const totalActiveSites = await this.siteRepo.count({
+      where: { status: UserStatus.ACTIVE },
+    });
+
+    const totalSupervisors = await this.userRepo.count({
+      where: {
+        role: UserRole.SUPERVISOR,
+        status: UserStatus.ACTIVE
+      },
+    });
+
+    const totalLabourers = await this.userRepo.count({
+      where: {
+        role: UserRole.LABOURER,
+        status: UserStatus.ACTIVE
+      },
+    });
+    const res = {
+      totalActiveSites,
+      totalSupervisors,
+      totalLabourers,
+    }
+    return res;
   }
 
   async updateSite(id: number, dto: UpdateUserSiteDto) {
     const site = await this.siteRepo.findOne({ where: { id , status: UserStatus.ACTIVE } });
 
     if (!site) {
-      throw new NotFoundException('Site not found');
+      return failureResponse('Site not found')
     }
 
     if (dto.siteName !== undefined) {
@@ -151,7 +217,11 @@ export class UserSitesService {
     }
 
     if (dto.supervisorId !== undefined) {
-      site.supervisor = await this.getSupervisor(dto.supervisorId);
+      if (!dto.supervisorId) {
+        site.supervisor = null;
+      } else {
+        site.supervisor = await this.getSupervisor(dto.supervisorId, id);
+      }
     }
 
     return this.siteRepo.save(site);
@@ -163,7 +233,7 @@ export class UserSitesService {
     });
 
   if (!site) {
-    throw new NotFoundException('Site not found');
+    return failureResponse('Site not found')
   }
 
   site.status = UserStatus.INACTIVE;

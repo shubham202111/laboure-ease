@@ -2,7 +2,7 @@ import { Controller, Get, Post, Patch, Delete, Param, Body, ParseIntPipe, BadReq
 import { UserSitesService } from './user-sites.service.js';
 import { CreateUserSiteDto, SiteListDto } from './dto/create-user-site.dto.js';
 import { UpdateUserSiteDto } from './dto/update-user-site.dto.js';
-import { successResponseWithData } from '../common/utils/response.helper.js';
+import { successResponseWithData ,successResponse,failureResponse,failureResponseWithError } from '../common/utils/response.helper.js';
 
 @Controller('user-sites')
 export class UserSitesController {
@@ -13,20 +13,26 @@ export class UserSitesController {
   @Post('/register')
   async registerSite(@Body() dto: CreateUserSiteDto) {
       const newUser = await this.userSitesService.create(dto);
-      return successResponseWithData(newUser, 'User sites registered successfully', 200);
+      return successResponseWithData('User sites registered successfully', newUser);
     
   }
 
   @Post('/list')
   async siteListData(@Body() siteListDto: SiteListDto) {
       const result = await this.userSitesService.findAllFiltered(siteListDto);
-      return successResponseWithData(result, 'Site list retrieved successfully', 200);
+      return successResponseWithData('Site list retrieved successfully', result);
+  }
+
+  @Get('/count')
+  async siteListCountData() {
+      const result = await this.userSitesService.getSiteData();
+      return successResponseWithData('Site list retrieved successfully', result);
   }
 
   @Get('/list/:id')
   async findOne(@Param('id', ParseIntPipe) id: number) {
       const result = await this.userSitesService.findOne(id);
-      return successResponseWithData(result, 'Site retrieved successfully', 200);
+      return successResponseWithData('Site retrieved successfully', result);
   }
 
   @Put('/update/:id')
@@ -35,12 +41,12 @@ export class UserSitesController {
     @Body() dto: UpdateUserSiteDto,
   ) {
       const result = await this.userSitesService.updateSite(id, dto);
-      return successResponseWithData(result, 'Site updated successfully', 200);
+      return successResponseWithData('Site updated successfully', result);
   }
 
   @Delete('/delete/:id')
   async remove(@Param('id', ParseIntPipe) id: number) {
       const result = await this.userSitesService.removeSite(id);
-      return successResponseWithData(result, 'Site deleted successfully', 200);
+      return successResponse('Site deleted successfully');
   }
 }

@@ -5,7 +5,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
 import { RolesGuard } from './guards/roles.guard.js';
 import { Roles } from './decorators/roles.decorator.js';
 import { UserRole } from '../enums/user-role.enum.js';
-import { successResponseWithData } from '../common/utils/response.helper.js';
+import { successResponseWithData ,successResponse,failureResponse,failureResponseWithError } from '../common/utils/response.helper.js';
 
 @Controller('auth')
 export class AuthController {
@@ -15,7 +15,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async login(@Body() loginDto: LoginDto) {
       const result = await this.authService.login(loginDto);
-      return successResponseWithData(result, 'Login Successfully', 200);
+      return successResponseWithData('Login Successfully', result);
   }
 
   @Get('profile')

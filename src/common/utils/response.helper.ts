@@ -1,53 +1,71 @@
-export interface StandardResponse<T> {
+export interface IResponse {
   success: boolean;
   statusCode: number;
   message: string;
-  data?: T;
+  data?: any;
+  fileName?: any;
   error?: any;
 }
 
 /**
  * Returns a basic success response without data.
  */
-export function successResponse(message = 'Success', statusCode = 200) {
-  return {
+export function successResponse(msg:string): IResponse {
+  const resObject: IResponse = {
     success: true,
-    statusCode,
-    message,
-  };
+    statusCode:200,
+    message:msg,
+
+  }
+  return resObject;
 }
 
 /**
  * Returns a success response containing data.
  */
-export function successResponseWithData<T>(data: T, message = 'Success', statusCode = 200): StandardResponse<T> {
-  return {
+export function successResponseWithData(msg: string, data: any): IResponse {
+  const resObject: IResponse = {
     success: true,
-    statusCode,
-    message,
-    data,
-  };
+    statusCode:200,
+    message:msg,
+    data: data
+  }
+  return resObject;
+}
+
+export function successResponseUploadData(msg: string, data: any): IResponse {
+  const resObject: IResponse = {
+    success: true,
+    statusCode:200,
+    message:msg,
+    fileName: data
+  }
+  return resObject;
 }
 
 /**
  * Returns a basic failure response with a message.
  */
-export function failureResponse(message = 'Operation failed', statusCode = 400) {
-  return {
+export function failureResponse(msg:string, statusCode =400): IResponse {
+  const resObject: IResponse = {
     success: false,
-    statusCode,
-    message,
-  };
+    statusCode:statusCode,
+    message:msg,
+
+  }
+  return resObject;
 }
 
 /**
  * Returns a failure response including detailed error context.
  */
-export function failureResponseWithError(error: any, message = 'An error occurred', statusCode = 400) {
-  return {
+export function failureResponseWithError(msg: string, error: any): IResponse  {
+  const resObject: IResponse = {
     success: false,
-    statusCode,
-    message,
-    error: error instanceof Error ? error.message : error,
-  };
+    statusCode:400,
+    message:msg,
+    error: error
+
+  }
+  return resObject;
 }

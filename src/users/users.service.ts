@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  ConflictException,
-  BadRequestException,
-} from '@nestjs/common';
+import {Injectable} from '@nestjs/common';
 
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
@@ -15,6 +10,7 @@ import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
 import { UserStatus } from '../enums/user-status.enum.js';
 import { UserRole } from '../enums/user-role.enum.js';
+import { successResponseWithData ,successResponse,failureResponse,failureResponseWithError } from '../common/utils/response.helper.js';
 
 @Injectable()
 export class UsersService {
@@ -38,7 +34,7 @@ export class UsersService {
       });
 
       if (existingUser) {
-        throw new ConflictException('Email already exists');
+        return failureResponse('user not exists')
       }
     }
 
@@ -46,9 +42,7 @@ export class UsersService {
 
     if (dto.user_site_id !== undefined) {
       if (dto.role == UserRole.ADMIN) {
-        throw new BadRequestException(
-          'Admins cannot be assigned to a site',
-        );
+        return failureResponse('Admins cannot be assigned to a site')
       }
 
       const site = await this.siteRepo.findOne({
@@ -56,7 +50,7 @@ export class UsersService {
       });
 
       if (!site) {
-        throw new BadRequestException('site not found');
+        return failureResponse('site not found')
       }
 
       siteId = site.id;
@@ -89,7 +83,7 @@ export class UsersService {
 
   async findNonAssignedSupervisors() {
     const users = await this.userRepo.find({
-      where: { user_site_id:  IsNull(), status: UserStatus.ACTIVE, role: UserRole.SUPERVISOR },
+      where: { status: UserStatus.ACTIVE, role: UserRole.SUPERVISOR },
       order: { id: 'DESC' },
     });
 
@@ -100,7 +94,7 @@ export class UsersService {
     const user = await this.userRepo.findOne({ where: { id, status:UserStatus.ACTIVE } });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      return failureResponse('User not found')
     }
 
     return this.safeUser(user);
@@ -110,7 +104,7 @@ export class UsersService {
     const user = await this.userRepo.findOne({ where: { id ,status:UserStatus.ACTIVE} });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      return failureResponse('User not found')
     }
 
     if (dto.email && dto.email !== user.email) {
@@ -119,7 +113,7 @@ export class UsersService {
       });
 
       if (existing) {
-        throw new ConflictException('Email already exists');
+        return failureResponse('Email already exists')
       }
     }
 
@@ -128,9 +122,7 @@ export class UsersService {
 
     if (dto.user_site_id !== undefined) {
       if (nextRole !== UserRole.LABOURER) {
-        throw new BadRequestException(
-          'Only labourers can be assigned a site',
-        );
+        return failureResponse('Only labourers can be assigned a site')
       }
 
       const site = await this.siteRepo.findOne({
@@ -138,7 +130,7 @@ export class UsersService {
       });
 
       if (!site) {
-        throw new BadRequestException('Active site not found');
+        return failureResponse('Active site not found')
       }
       nextSiteId = site.id;
     }
@@ -166,7 +158,7 @@ export class UsersService {
   });
 
   if (!user) {
-    throw new NotFoundException('User not found');
+    return failureResponse('user not found')
   }
 
   const supervisedSites = await this.siteRepo.count({
@@ -174,9 +166,7 @@ export class UsersService {
   });
 
   if (supervisedSites > 0) {
-    throw new BadRequestException(
-      'Reassign or remove this supervisor’s sites before deactivating the user',
-    );
+    return failureResponse('Reassign or remove this supervisor’s sites before deactivating the user')
   }
 
   user.status = UserStatus.INACTIVE;
