@@ -1,4 +1,4 @@
-import {Injectable} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
@@ -10,7 +10,7 @@ import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
 import { UserStatus } from '../enums/user-status.enum.js';
 import { UserRole } from '../enums/user-role.enum.js';
-import { successResponseWithData ,successResponse,failureResponse,failureResponseWithError } from '../common/utils/response.helper.js';
+import { successResponseWithData, successResponse, failureResponse, failureResponseWithError } from '../common/utils/response.helper.js';
 
 @Injectable()
 export class UsersService {
@@ -70,15 +70,17 @@ export class UsersService {
       user_site_id: siteId,
     });
 
-    return this.safeUser(await this.userRepo.save(user));
+    const userData = await this.safeUser(await this.userRepo.save(user));
+    return successResponseWithData('User created successfully', user);
   }
 
   async findAll() {
     const users = await this.userRepo.find({
-      order: { id: 'DESC', status:UserStatus.ACTIVE },
+      order: { id: 'DESC', status: UserStatus.ACTIVE },
     });
 
-    return users.map((user) => this.safeUser(user));
+    const userData = users.map((user) => this.safeUser(user));
+    return successResponseWithData('Users fetched successfully', userData);
   }
 
   async findNonAssignedSupervisors() {
@@ -87,21 +89,23 @@ export class UsersService {
       order: { id: 'DESC' },
     });
 
-    return users.map((user) => this.safeUser(user));
+    const userData = users.map((user) => this.safeUser(user));
+    return successResponseWithData('Users fetched successfully', userData);
   }
 
   async findOne(id: number) {
-    const user = await this.userRepo.findOne({ where: { id, status:UserStatus.ACTIVE } });
+    const user = await this.userRepo.findOne({ where: { id, status: UserStatus.ACTIVE } });
 
     if (!user) {
       return failureResponse('User not found')
     }
 
-    return this.safeUser(user);
+    const userData = this.safeUser(user);
+    return successResponseWithData('Users fetched successfully', userData);
   }
 
   async update(id: number, dto: UpdateUserDto) {
-    const user = await this.userRepo.findOne({ where: { id ,status:UserStatus.ACTIVE} });
+    const user = await this.userRepo.findOne({ where: { id, status: UserStatus.ACTIVE } });
 
     if (!user) {
       return failureResponse('User not found')
@@ -109,7 +113,7 @@ export class UsersService {
 
     if (dto.email && dto.email !== user.email) {
       const existing = await this.userRepo.findOne({
-        where: { email: dto.email ,status:UserStatus.ACTIVE },
+        where: { email: dto.email, status: UserStatus.ACTIVE },
       });
 
       if (existing) {
@@ -144,32 +148,34 @@ export class UsersService {
     const updatedLastName = dto.lastName ?? user.lastName;
     const displayName = `${updatedFirstName} ${updatedLastName}`;
 
-    Object.assign(user, fields, {displayName, user_site_id: nextSiteId });
+    Object.assign(user, fields, { displayName, user_site_id: nextSiteId });
 
     if (password) {
       user.password = await bcrypt.hash(password, 12);
     }
-    return this.safeUser(await this.userRepo.save(user));
+    const userData = this.safeUser(await this.userRepo.save(user));
+    return successResponseWithData('Users updated successfully', userData);
   }
 
   async remove(id: number) {
-  const user = await this.userRepo.findOne({ 
-    where: { id, status: UserStatus.ACTIVE } 
-  });
+    const user = await this.userRepo.findOne({
+      where: { id, status: UserStatus.ACTIVE }
+    });
 
-  if (!user) {
-    return failureResponse('user not found')
+    if (!user) {
+      return failureResponse('user not found')
+    }
+
+    const supervisedSites = await this.siteRepo.count({
+      where: { supervisor: { id } },
+    });
+
+    if (supervisedSites > 0) {
+      return failureResponse('Reassign or remove this supervisor’s sites before deactivating the user')
+    }
+
+    user.status = UserStatus.INACTIVE;
+    const userData = await this.userRepo.save(user);
+    return successResponse('Users deleted successfully');
   }
-
-  const supervisedSites = await this.siteRepo.count({
-    where: { supervisor: { id } },
-  });
-
-  if (supervisedSites > 0) {
-    return failureResponse('Reassign or remove this supervisor’s sites before deactivating the user')
-  }
-
-  user.status = UserStatus.INACTIVE;
-  return await this.userRepo.save(user);
-}
 }

@@ -49,6 +49,6 @@ export class AuthService {
 
     const { password: _, ...userData } = user;
     const loggedUser = { accessToken, user: userData }
-    return loggedUser;
+    return successResponseWithData('Login Successfully', loggedUser);
   }
 }

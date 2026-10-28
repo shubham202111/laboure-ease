@@ -12,27 +12,23 @@ export class UserSitesController {
 
   @Post('/register')
   async registerSite(@Body() dto: CreateUserSiteDto) {
-      const newUser = await this.userSitesService.create(dto);
-      return successResponseWithData('User sites registered successfully', newUser);
+      return await this.userSitesService.create(dto);
     
   }
 
   @Post('/list')
   async siteListData(@Body() siteListDto: SiteListDto) {
-      const result = await this.userSitesService.findAllFiltered(siteListDto);
-      return successResponseWithData('Site list retrieved successfully', result);
+      return await this.userSitesService.findAllFiltered(siteListDto);
   }
 
   @Get('/count')
   async siteListCountData() {
-      const result = await this.userSitesService.getSiteData();
-      return successResponseWithData('Site list retrieved successfully', result);
+      return await this.userSitesService.getSiteData();
   }
 
   @Get('/list/:id')
   async findOne(@Param('id', ParseIntPipe) id: number) {
-      const result = await this.userSitesService.findOne(id);
-      return successResponseWithData('Site retrieved successfully', result);
+      return await this.userSitesService.findOne(id);
   }
 
   @Put('/update/:id')
@@ -40,13 +36,11 @@ export class UserSitesController {
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateUserSiteDto,
   ) {
-      const result = await this.userSitesService.updateSite(id, dto);
-      return successResponseWithData('Site updated successfully', result);
+      return await this.userSitesService.updateSite(id, dto);
   }
 
   @Delete('/delete/:id')
   async remove(@Param('id', ParseIntPipe) id: number) {
-      const result = await this.userSitesService.removeSite(id);
-      return successResponse('Site deleted successfully');
+      return await this.userSitesService.removeSite(id);
   }
 }

@@ -14,8 +14,8 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(@Body() loginDto: LoginDto) {
-      const result = await this.authService.login(loginDto);
-      return successResponseWithData('Login Successfully', result);
+      return await this.authService.login(loginDto);
+      
   }
 
   @Get('profile')

@@ -1,50 +1,43 @@
-import { Controller, Get, Post, Patch, Delete, Param, Body, ParseIntPipe,Put, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, Body, ParseIntPipe, Put, BadRequestException } from '@nestjs/common';
 import { UsersService } from './users.service.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
-import { successResponseWithData ,successResponse,failureResponse,failureResponseWithError } from '../common/utils/response.helper.js';
+import { successResponseWithData, successResponse, failureResponse, failureResponseWithError } from '../common/utils/response.helper.js';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) { }
+    constructor(private readonly usersService: UsersService) { }
 
-  @Post('/create')
-  async createSiteUser(@Body() dto: CreateUserDto) {
-      const user = await this.usersService.createUser(dto);
-      return successResponseWithData('User created successfully', user);
-  }
+    @Post('/create')
+    async createSiteUser(@Body() dto: CreateUserDto) {
+        return await this.usersService.createUser(dto);
+    }
 
-  @Get('/list')
-  async fetchSiteUsers() {
-      const users = await this.usersService.findAll();
-      return successResponseWithData('Users fetched successfully',users);
-  }
+    @Get('/list')
+    async fetchSiteUsers() {
+        return await this.usersService.findAll();
+    }
 
-  @Get('/supervisor/list')
-  async fetchSupervisorUsers() {
-      const users = await this.usersService.findNonAssignedSupervisors();
-      return successResponseWithData('Users fetched successfully', users);
-    
-  }
+    @Get('/supervisor/list')
+    async fetchSupervisorUsers() {
+        return await this.usersService.findNonAssignedSupervisors();
+    }
 
-  @Get('/list/:id')
-  async findOne(@Param('id', ParseIntPipe) id: number) {
-      const user = await this.usersService.findOne(id);
-      return successResponseWithData('User fetched successfully', user);
-  }
+    @Get('/list/:id')
+    async findOne(@Param('id', ParseIntPipe) id: number) {
+        return await this.usersService.findOne(id);
+    }
 
-  @Put('/update/:id')
-  async update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateUserDto,
-  ) {
-      const user = await this.usersService.update(id, dto);
-      return successResponseWithData('User updated successfully', user);
-  }
+    @Put('/update/:id')
+    async update(
+        @Param('id', ParseIntPipe) id: number,
+        @Body() dto: UpdateUserDto,
+    ) {
+        return  await this.usersService.update(id, dto);
+    }
 
-  @Delete('/delete/:id')
-  async remove(@Param('id', ParseIntPipe) id: number) {
-      await this.usersService.remove(id);
-      return successResponseWithData('User deleted successfully', null);
-  }
+    @Delete('/delete/:id')
+    async remove(@Param('id', ParseIntPipe) id: number) {
+      return  await this.usersService.remove(id);
+    }
 }

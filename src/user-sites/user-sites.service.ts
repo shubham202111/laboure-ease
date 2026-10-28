@@ -66,7 +66,8 @@ export class UserSitesService {
       status: 1,
     });
 
-    return this.siteRepo.save(site);
+    const siteData = this.siteRepo.save(site);
+    return successResponseWithData('User sites registered successfully', siteData);
   }
 
   async findAllFiltered(siteListDto: SiteListDto) {
@@ -133,9 +134,9 @@ export class UserSitesService {
     const formattedData = data.map((site) => ({
       ...site,
       totalLabours: countMap.get(site.id) || 0,
+      totalExpense: '24,567'
     }));
-
-    return {
+    const responseData ={
       data: formattedData,
       metaData: {
         totalItems: total,
@@ -145,7 +146,8 @@ export class UserSitesService {
         currentPage: pageNum,
       },
     };
-  }
+  return successResponseWithData('Site list retrieved successfully', responseData);
+}
 
   async findOne(id: number) {
     const site = await this.siteRepo.findOne({
@@ -172,7 +174,7 @@ export class UserSitesService {
     if (!site) {
       return failureResponse('Site not found')
     }
-    return site;
+    return successResponseWithData('Site list retrieved successfully', site);
   }
 
   async getSiteData() {
@@ -198,7 +200,7 @@ export class UserSitesService {
       totalSupervisors,
       totalLabourers,
     }
-    return res;
+    return successResponseWithData('Site list retrieved successfully', res);
   }
 
   async updateSite(id: number, dto: UpdateUserSiteDto) {
@@ -215,6 +217,9 @@ export class UserSitesService {
     if (dto.siteAddress !== undefined) {
       site.siteAddress = dto.siteAddress;
     }
+    if (dto.startDate !== undefined) {
+      site.startDate = dto.startDate;
+    }
 
     if (dto.supervisorId !== undefined) {
       if (!dto.supervisorId) {
@@ -224,7 +229,8 @@ export class UserSitesService {
       }
     }
 
-    return this.siteRepo.save(site);
+    const sitedata= this.siteRepo.save(site);
+    return successResponseWithData('Site updated successfully', sitedata);
   }
 
   async removeSite(id: number) {
@@ -239,5 +245,7 @@ export class UserSitesService {
   site.status = UserStatus.INACTIVE;
 
   return await this.siteRepo.save(site);
+
+  return successResponse('Site Deleted Successfully');
   }
 }
