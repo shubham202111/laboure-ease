@@ -1,6 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, JoinColumn, } from 'typeorm';
 import { UserStatus } from '../../enums/user-status.enum.js';
 import { UserRole } from '../../enums/user-role.enum.js';
+import { UserSite } from './user-site.entity.js';
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn()
@@ -38,6 +39,10 @@ export class User {
 
   @Column({ type: 'int', nullable: true })
   user_site_id: number | null;
+
+  @ManyToOne(() => UserSite, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'user_site_id' })
+  site: UserSite;
 
   @CreateDateColumn()
   createdAt: Date;
