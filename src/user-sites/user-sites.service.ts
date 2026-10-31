@@ -244,8 +244,7 @@ export class UserSitesService {
 
   site.status = UserStatus.INACTIVE;
 
-  return await this.siteRepo.save(site);
-
-  return successResponse('Site Deleted Successfully');
+  await this.siteRepo.save(site);
+  return successResponse('Site deleted successfully')
   }
 }
