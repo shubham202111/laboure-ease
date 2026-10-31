@@ -1,16 +1,8 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  OneToMany,
-  JoinColumn,
-  CreateDateColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn, CreateDateColumn, UpdateDateColumn, } from 'typeorm';
 
 import { User } from './user.entity.js';
 import { UserStatus } from '../../enums/user-status.enum.js';
+import { Expense } from '../../site-expense/entities/expense.entity.js';
 
 @Entity('user_sites')
 export class UserSite {
@@ -29,6 +21,9 @@ export class UserSite {
   @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'supervisor_id' })
   supervisor: User | null;
+
+  @OneToMany(() => Expense, (expense) => expense.site, { cascade: true })
+  expenses: Expense[];
 
   @Column({type: 'tinyint',default: UserStatus.ACTIVE})
   status: UserStatus;

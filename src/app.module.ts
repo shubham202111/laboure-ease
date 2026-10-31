@@ -7,6 +7,7 @@ import { UsersModule } from './users/users.module.js';
 import { UserSitesModule } from './user-sites/user-sites.module.js';
 import * as mysql2 from 'mysql2';
 import { AuthModule } from './auth/auth.module.js';
+import { SiteExpenseModule } from './site-expense/site-expense.module.js';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -47,7 +48,8 @@ import { AuthModule } from './auth/auth.module.js';
     }),
     UsersModule,
     UserSitesModule,
-    AuthModule
+    AuthModule,
+    SiteExpenseModule
   ],
   controllers: [AppController],
   providers: [AppService],
