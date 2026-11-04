@@ -96,6 +96,7 @@ export class UserSitesService {
         siteName: true,
         siteAddress: true,
         startDate: true,
+        endDate: true,
         status: true,
         createdAt: true,
         updatedAt: true,

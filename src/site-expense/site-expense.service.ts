@@ -77,45 +77,86 @@ export class SiteExpenseService {
     return expense;
   }
   async siteExpenseReport(dto: SiteExpenseByIdDto) {
-  const site = await this.siteRepo.findOne({ 
-    where: { id: dto.siteId, status: UserStatus.ACTIVE }  });
+    const site = await this.siteRepo.findOne({
+      where: { id: dto.siteId, status: UserStatus.ACTIVE }
+    });
 
-  if (!site) {
-    return failureResponse('Site not exists');
-  }
-
-  const expensesLedger = await this.expenseRepo.find({
-    where: { siteId: dto.siteId },
-    relations: {
-      site :{ supervisor:true},
-      category: true,
-      items: { subcategory: true },
-    },
-    order: { id: 'DESC' },
-  });
-
-  const totalExpenseAmount = expensesLedger.reduce(
-    (sum, exp) => sum + Number(exp.totalAmount || 0),
-    0,
-  );
-
-  const categoryMap = new Map();
-  expensesLedger.forEach((exp) => {
-    if (exp.category && !categoryMap.has(exp.category.id)) {
-      categoryMap.set(exp.category.id, exp.category);
+    if (!site) {
+      return failureResponse('Site not exists');
     }
-  });
-  const expenseCategories = Array.from(categoryMap.values());
 
-  const reportData = {
-    expensesLedger,
-    totalExpenseAmount,
-    expenseEntriesCount : expensesLedger.length,
-    expenseCategoriesCount: expenseCategories.length,
-  };
+    const expensesLedger = await this.expenseRepo.find({
+      where: { siteId: dto.siteId },
+      relations: {
+        site: { supervisor: true },
+        category: true,
+        items: { subcategory: true },
+      },
+      order: { id: 'DESC' },
+    });
 
-  return successResponseWithData('Site expense ledger fetched successfully.', reportData);
-}
+    const totalExpenseAmount = expensesLedger.reduce(
+      (sum, exp) => sum + Number(exp.totalAmount || 0),
+      0,
+    );
+
+    const categoryMap = new Map();
+    expensesLedger.forEach((exp) => {
+      if (exp.category && !categoryMap.has(exp.category.id)) {
+        categoryMap.set(exp.category.id, exp.category);
+      }
+    });
+    const expenseCategories = Array.from(categoryMap.values());
+
+    const reportData = {
+      expensesLedger,
+      totalExpenseAmount,
+      expenseEntriesCount: expensesLedger.length,
+      expenseCategoriesCount: expenseCategories.length,
+    };
+
+    return successResponseWithData('Site expense ledger fetched successfully.', reportData);
+  }
+  async siteExpenseCategoryReport(dto: SiteExpenseByIdDto) {
+    const site = await this.siteRepo.findOne({
+      where: { id: dto.siteId, status: UserStatus.ACTIVE }
+    });
+
+    if (!site) {
+      return failureResponse('Site not exists');
+    }
+    const expensesLedger = await this.expenseRepo.find({
+      where: { siteId: dto.siteId },
+      relations: {
+        category: true,
+      },
+    });
+
+    const categoryMap = new Map();
+
+    expensesLedger.forEach((exp) => {
+      const categoryId = exp.category ? exp.category.id : null;
+      const categoryName = exp.category ? exp.category.name : 'Uncategorized';
+      const amount = Number(exp.totalAmount || 0);
+
+      // Use categoryId (or a fallback key if null) to group uniquely
+      const mapKey = categoryId || 'uncategorized';
+
+      if (!categoryMap.has(mapKey)) {
+        categoryMap.set(mapKey, {
+          categoryId,
+          categoryName,
+          totalAmount: 0,
+        });
+      }
+
+      categoryMap.get(mapKey).totalAmount += amount;
+    });
+
+    const categoryWiseData = Array.from(categoryMap.values());
+
+    return successResponseWithData('Expense report fetched successfully.', categoryWiseData);
+  }
 
   async getSiteLedger(siteId: number) {
     const expenses = await this.expenseRepo.find({

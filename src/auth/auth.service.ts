@@ -51,4 +51,7 @@ export class AuthService {
     const loggedUser = { accessToken, user: userData }
     return successResponseWithData('Login Successfully', loggedUser);
   }
+  async logout(userId: number) {
+    return successResponse('Logged out successfully');
+  }
 }

@@ -14,6 +14,10 @@ export class CreateUserSiteDto {
   @IsOptional()
   @IsDateString({ strict: true })
   startDate?: string | null;
+  
+  @IsOptional()
+  @IsDateString({ strict: true })
+  endDate?: string | null;
 
   @IsOptional()
   supervisorId: number;

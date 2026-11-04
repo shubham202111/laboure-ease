@@ -17,6 +17,11 @@ export class SiteExpenseController {
     return this.siteExpenseService.siteExpenseReport(dto);
   }
 
+  @Post('/category/report')
+  siteExpenseCategoryReport(@Body() dto :SiteExpenseByIdDto) {
+    return this.siteExpenseService.siteExpenseCategoryReport(dto);
+  }
+
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateSiteExpenseDto: UpdateSiteExpenseDto) {
     return this.siteExpenseService.update(+id, updateSiteExpenseDto);

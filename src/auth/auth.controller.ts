@@ -1,4 +1,4 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, Get, UseGuards, Req, BadRequestException } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus, Get, UseGuards, Req,Res } from '@nestjs/common';
 import { AuthService } from './auth.service.js';
 import { LoginDto } from '../auth/dto/login.dto.js';
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
@@ -26,5 +26,11 @@ export class AuthController {
       message: 'Access granted to protected route',
       user: req.user, 
     };
+  }
+  @Post('logout')
+  @UseGuards(JwtAuthGuard) 
+  @HttpCode(HttpStatus.OK)
+  async logout(@Req() req:any, @Res({ passthrough: true }) res?: Response) {
+    return await this.authService.logout(req.user.userId);
   }
 }

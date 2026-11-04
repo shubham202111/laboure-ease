@@ -18,6 +18,9 @@ export class UserSite {
   @Column({type: 'date', nullable: true})
   startDate: string | null;
 
+  @Column({type: 'date', nullable: true})
+  endDate: string | null;
+
   @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'supervisor_id' })
   supervisor: User | null;
