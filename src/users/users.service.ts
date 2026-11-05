@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import { IsNull, Repository,ILike, FindOptionsWhere } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 
 import { User } from './entities/user.entity.js';
@@ -11,7 +11,7 @@ import { UpdateUserDto } from './dto/update-user.dto.js';
 import { UserStatus } from '../enums/user-status.enum.js';
 import { UserRole } from '../enums/user-role.enum.js';
 import { successResponseWithData, successResponse, failureResponse, failureResponseWithError } from '../common/utils/response.helper.js';
-
+import { FilterUserDto } from './dto/create-user.dto.js';
 @Injectable()
 export class UsersService {
   constructor(
@@ -94,23 +94,61 @@ export class UsersService {
     return successResponseWithData('User created successfully', userData);
   }
 
-  async findAll() {
-  const users = await this.userRepo.find({
-    where: { status: UserStatus.ACTIVE }, 
-    relations: { site: true },          
-    order: { id: 'DESC' },
-  });
+//   async findAll() {
+//   const users = await this.userRepo.find({
+//     where: { status: UserStatus.ACTIVE }, 
+//     relations: { site: true },          
+//     order: { id: 'DESC' },
+//   });
 
-  const userData = users.map((user) => {
-    const safeData = this.safeUser(user);
-    return {
-      ...safeData,
-      site: user.site || null,
+//   const userData = users.map((user) => {
+//     const safeData = this.safeUser(user);
+//     return {
+//       ...safeData,
+//       site: user.site || null,
+//     };
+//   });
+
+//   return successResponseWithData('Users fetched successfully', userData);
+// }
+  async findAllUsers(dto: FilterUserDto) {
+    const page = dto.page ?? 1;
+    const limit = dto.limit ?? 10;
+    const skip = (page - 1) * limit;
+
+    const { userName, role } = dto;
+
+    const whereCondition: FindOptionsWhere<User> = {
+      status: UserStatus.ACTIVE,
     };
-  });
 
-  return successResponseWithData('Users fetched successfully', userData);
-}
+    if (role) {
+      whereCondition.role = role;
+    }
+
+    if (userName) {
+      whereCondition.firstName = ILike(`%${userName}%`);
+    }
+
+    const [users, total] = await this.userRepo.findAndCount({
+      where: whereCondition,
+      relations: { site: true },
+      order: { id: 'DESC' },
+      skip,
+      take: limit,
+    });
+
+    const userData = {
+      data: users,
+      metaData: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    }
+    return successResponseWithData('Users fetched successfully', userData);
+  }
 
   async findNonAssignedSupervisors() {
     const users = await this.userRepo.find({

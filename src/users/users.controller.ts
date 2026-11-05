@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Patch, Delete, Param, Body, ParseIntPipe, Put, BadRequestException } from '@nestjs/common';
 import { UsersService } from './users.service.js';
-import { CreateUserDto } from './dto/create-user.dto.js';
+import { CreateUserDto, FilterUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
 import { successResponseWithData, successResponse, failureResponse, failureResponseWithError } from '../common/utils/response.helper.js';
 
@@ -13,9 +13,9 @@ export class UsersController {
         return await this.usersService.createUser(dto);
     }
 
-    @Get('/list')
-    async fetchSiteUsers() {
-        return await this.usersService.findAll();
+    @Post('/list')
+    async fetchSiteUsers(@Body() filterDto: FilterUserDto) {
+        return await this.usersService.findAllUsers(filterDto);
     }
 
     @Get('/supervisor/list')

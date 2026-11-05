@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { Subcategory } from './subcategory.entity.js';
+import { UserStatus } from '../../enums/user-status.enum.js';
 
 @Entity('categories')
 export class Category {
@@ -11,6 +12,9 @@ export class Category {
 
   @OneToMany(() => Subcategory, (sub) => sub.category)
   subcategories: Subcategory[];
+
+  @Column({ type: 'tinyint', default: UserStatus.ACTIVE })
+  status: UserStatus;
 
   @CreateDateColumn()
   createdAt: Date;

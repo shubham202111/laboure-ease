@@ -1,6 +1,6 @@
 import { IsEmail, IsEnum, IsInt, IsOptional, IsString, MaxLength, MinLength, Min } from 'class-validator';
 import { UserRole } from '../../enums/user-role.enum.js';
-
+import { Type } from 'class-transformer';
 export class CreateUserDto {
   @IsString()
   @MaxLength(100)
@@ -46,4 +46,26 @@ export class CreateUserDto {
   @IsInt()
   @Min(1)
   user_site_id?: number;
+}
+
+export class FilterUserDto {
+  @IsOptional()
+  @IsString()
+  userName?: string;
+
+  @IsOptional()
+  @IsEnum(UserRole)
+  role?: UserRole;
+  
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page?: number = 1;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  limit?: number = 10;
 }

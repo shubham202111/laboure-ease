@@ -7,9 +7,11 @@ import { Subcategory } from './entities/subcategory.entity.js';
 import { Expense } from './entities/expense.entity.js';
 import { ExpenseItem } from './entities/expense-item.entity.js';
 import { UserSite } from '../users/entities/user-site.entity.js';
+import { CategoriesController } from './category.controller.js';
+import { CategoriesService } from './category.service.js';
 @Module({
   imports: [TypeOrmModule.forFeature([Category, Subcategory, Expense, ExpenseItem,UserSite])],
-  controllers: [SiteExpenseController],
-  providers: [SiteExpenseService],
+  controllers: [SiteExpenseController, CategoriesController],
+  providers: [SiteExpenseService,CategoriesService],
 })
 export class SiteExpenseModule {}

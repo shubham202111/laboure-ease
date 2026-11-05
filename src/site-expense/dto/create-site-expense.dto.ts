@@ -51,6 +51,10 @@ export class SiteExpenseByIdDto {
   @IsNumber()
   siteId: number;
 
+  @IsOptional()
+  @IsString()
+  category: string;
+
   // @IsOptional()
   // @IsString()
   // startDate : Date;
