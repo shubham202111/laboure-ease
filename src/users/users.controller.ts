@@ -40,4 +40,9 @@ export class UsersController {
     async remove(@Param('id', ParseIntPipe) id: number) {
       return  await this.usersService.remove(id);
     }
+
+    @Get('/report')
+    async fetchDashboardReport() {
+        return await this.usersService.fetchDashboardReport();
+    }
 }

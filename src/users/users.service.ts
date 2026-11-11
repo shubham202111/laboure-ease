@@ -12,6 +12,7 @@ import { UserStatus } from '../enums/user-status.enum.js';
 import { UserRole } from '../enums/user-role.enum.js';
 import { successResponseWithData, successResponse, failureResponse, failureResponseWithError } from '../common/utils/response.helper.js';
 import { FilterUserDto } from './dto/create-user.dto.js';
+import { Expense } from '../site-expense/entities/expense.entity.js';
 @Injectable()
 export class UsersService {
   constructor(
@@ -20,6 +21,9 @@ export class UsersService {
 
     @InjectRepository(UserSite)
     private readonly siteRepo: Repository<UserSite>,
+
+    @InjectRepository(Expense)
+    private readonly expenseRepo: Repository<Expense>,
   ) { }
 
   private safeUser(user: User) {
@@ -317,5 +321,34 @@ export class UsersService {
     user.status = UserStatus.INACTIVE;
     const userData = await this.userRepo.save(user);
     return successResponse('Users deleted successfully');
+  }
+  async fetchDashboardReport() {
+    const totalActiveSites = await this.siteRepo.count({
+      where: { status: UserStatus.ACTIVE },
+    });
+
+    const expenseResult = await this.expenseRepo
+      .createQueryBuilder('expense')
+      .select('SUM(expense.totalAmount)', 'totalExpenses')
+      .getRawOne();
+
+    const totalExpenses = Number(expenseResult?.totalExpenses || 0);
+
+    const totalLabour = await this.userRepo.count({
+      where: { role: UserRole.LABOURER, status: UserStatus.ACTIVE },
+    });
+
+    const totalSupervisor = await this.userRepo.count({
+      where: { role: UserRole.SUPERVISOR, status: UserStatus.ACTIVE },
+    });
+
+    const report = {
+      totalLabour,
+      totalSupervisor,
+      totalExpenses,
+      totalActiveSites
+    };
+
+    return successResponseWithData('Dashboard report fetched successfully', report);
   }
 }
