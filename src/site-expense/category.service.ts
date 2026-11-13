@@ -66,30 +66,18 @@ export class CategoriesService {
 
     if (dto.name) {
       category.name = dto.name;
-      await this.categoryRepo.save(category);
     }
+
     if (dto.description) {
       category.description = dto.description;
+    }
+
+    if (dto.name || dto.description) {
       await this.categoryRepo.save(category);
     }
 
-    if (dto.subcategories) {
-      const existingSubcategories = category.subcategories || [];
-      const incomingSubcategories = dto.subcategories;
-
-      const incomingIds = incomingSubcategories
-        .filter((sub) => sub.id)
-        .map((sub) => sub.id);
-
-      const subcategoriesToRemove = existingSubcategories.filter(
-        (sub) => !incomingIds.includes(sub.id),
-      );
-
-      if (subcategoriesToRemove.length > 0) {
-        await this.subcategoryRepo.remove(subcategoriesToRemove);
-      }
-
-      for (const subDto of incomingSubcategories) {
+    if (dto.subcategories && Array.isArray(dto.subcategories)) {
+      for (const subDto of dto.subcategories) {
         if (subDto.id) {
           await this.subcategoryRepo.update(subDto.id, { name: subDto.name });
         } else {
