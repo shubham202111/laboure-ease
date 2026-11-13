@@ -332,6 +332,9 @@ export class UserSitesService {
     if (dto.startDate !== undefined) {
       site.startDate = dto.startDate;
     }
+    if (dto.endDate !== undefined) {
+      site.endDate = dto.endDate;
+    }
 
     if (dto.supervisorId !== undefined) {
       if (!dto.supervisorId) {
