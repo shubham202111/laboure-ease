@@ -67,6 +67,7 @@ export class UserSitesService {
       siteAddress: dto.siteAddress,
       supervisor,
       startDate: dto.startDate ?? null,
+      endDate: dto.endDate ?? null,
       status: 1,
     });
 
