@@ -76,16 +76,61 @@ export class SiteExpenseService {
     if (!expense) return failureResponse('Expense record not found')
     return expense;
   }
+  // async siteExpenseReport(dto: SiteExpenseByIdDto) {
+  //   const site = await this.siteRepo.findOne({
+  //     where: { id: dto.siteId, status: UserStatus.ACTIVE }
+  //   });
+
+  //   if (!site) {
+  //     return failureResponse('Site not exists');
+  //   }
+
+  //   const expensesLedger = await this.expenseRepo.find({
+  //     where: { siteId: dto.siteId },
+  //     relations: {
+  //       site: { supervisor: true },
+  //       category: true,
+  //       items: { subcategory: true },
+  //     },
+  //     order: { id: 'DESC' },
+  //   });
+
+  //   const totalExpenseAmount = expensesLedger.reduce(
+  //     (sum, exp) => sum + Number(exp.totalAmount || 0),
+  //     0,
+  //   );
+
+  //   const categoryMap = new Map();
+  //   expensesLedger.forEach((exp) => {
+  //     if (exp.category && !categoryMap.has(exp.category.id)) {
+  //       categoryMap.set(exp.category.id, exp.category);
+  //     }
+  //   });
+  //   const expenseCategories = Array.from(categoryMap.values());
+
+  //   const reportData = {
+  //     expensesLedger,
+  //     totalExpenseAmount,
+  //     expenseEntriesCount: expensesLedger.length,
+  //     expenseCategoriesCount: expenseCategories.length,
+  //   };
+
+  //   return successResponseWithData('Site expense ledger fetched successfully.', reportData);
+  // }
   async siteExpenseReport(dto: SiteExpenseByIdDto) {
     const site = await this.siteRepo.findOne({
-      where: { id: dto.siteId, status: UserStatus.ACTIVE }
+      where: { id: dto.siteId, status: UserStatus.ACTIVE },
     });
 
     if (!site) {
       return failureResponse('Site not exists');
     }
 
-    const expensesLedger = await this.expenseRepo.find({
+    const page = Number(dto.page) || 1;
+    const limit = Number(dto.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const [expensesLedger, totalEntries] = await this.expenseRepo.findAndCount({
       where: { siteId: dto.siteId },
       relations: {
         site: { supervisor: true },
@@ -93,15 +138,22 @@ export class SiteExpenseService {
         items: { subcategory: true },
       },
       order: { id: 'DESC' },
+      skip,
+      take: limit,
     });
 
-    const totalExpenseAmount = expensesLedger.reduce(
+    const allSiteExpenses = await this.expenseRepo.find({
+      where: { siteId: dto.siteId },
+      relations: { category: true },
+    });
+
+    const totalExpenseAmount = allSiteExpenses.reduce(
       (sum, exp) => sum + Number(exp.totalAmount || 0),
       0,
     );
 
     const categoryMap = new Map();
-    expensesLedger.forEach((exp) => {
+    allSiteExpenses.forEach((exp) => {
       if (exp.category && !categoryMap.has(exp.category.id)) {
         categoryMap.set(exp.category.id, exp.category);
       }
@@ -111,8 +163,14 @@ export class SiteExpenseService {
     const reportData = {
       expensesLedger,
       totalExpenseAmount,
-      expenseEntriesCount: expensesLedger.length,
+      expenseEntriesCount: totalEntries, 
       expenseCategoriesCount: expenseCategories.length,
+      metaData: {
+        currentPage: page,
+        itemsPerPage: limit,
+        totalItems: totalEntries,
+        totalPages: Math.ceil(totalEntries / limit),
+      },
     };
 
     return successResponseWithData('Site expense ledger fetched successfully.', reportData);

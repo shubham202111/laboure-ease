@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsDateString, IsArray, ValidateNested, Min, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsDateString, IsArray, ValidateNested, Min, IsString, IsInt } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateSiteExpenseDto {
@@ -54,6 +54,17 @@ export class SiteExpenseByIdDto {
   @IsOptional()
   @IsString()
   category: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  page?: number = 1;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  limit?: number = 10;
 
   // @IsOptional()
   // @IsString()
