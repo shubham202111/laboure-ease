@@ -16,6 +16,7 @@ export class CategoriesService {
   async createCategory(dto: CreateCategoryDto) {
     const category = this.categoryRepo.create({
       name: dto.name,
+      description: dto.description || '',
     });
     const createdCategory = await this.categoryRepo.save(category);
 
