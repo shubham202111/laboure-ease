@@ -67,6 +67,10 @@ export class CategoriesService {
       category.name = dto.name;
       await this.categoryRepo.save(category);
     }
+    if (dto.description) {
+      category.description = dto.description;
+      await this.categoryRepo.save(category);
+    }
 
     if (dto.subcategories) {
       const existingSubcategories = category.subcategories || [];
