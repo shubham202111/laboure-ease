@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository,ILike, FindOptionsWhere } from 'typeorm';
+import { IsNull, Repository,ILike, FindOptionsWhere, Not } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 
 import { User } from './entities/user.entity.js';
@@ -124,12 +124,8 @@ export class UsersService {
 
     const whereCondition: FindOptionsWhere<User> = {
       status: UserStatus.ACTIVE,
+      role: role ? role : Not(UserRole.ADMIN),
     };
-
-    if (role) {
-      whereCondition.role = role;
-    }
-
     if (userName) {
       whereCondition.firstName = ILike(`%${userName}%`);
     }
