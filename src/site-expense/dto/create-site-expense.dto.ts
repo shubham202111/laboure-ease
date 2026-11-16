@@ -66,11 +66,11 @@ export class SiteExpenseByIdDto {
   @Min(1)
   limit?: number = 10;
 
-  // @IsOptional()
-  // @IsString()
-  // startDate : Date;
+  @IsOptional()
+  @IsString()
+  startDate : Date;
 
-  // @IsOptional()
-  // @IsString()
-  // endDate : Date;
+  @IsOptional()
+  @IsString()
+  endDate : Date;
 }

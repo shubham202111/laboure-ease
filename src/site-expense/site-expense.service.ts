@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateExpenseDto, CreateSiteExpenseDto, SiteExpenseByIdDto } from './dto/create-site-expense.dto.js';
 import { UpdateSiteExpenseDto } from './dto/update-site-expense.dto.js';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository,Between, MoreThanOrEqual, LessThanOrEqual, FindOptionsWhere } from 'typeorm';
 import { Expense } from './entities/expense.entity.js';
 import { ExpenseItem } from './entities/expense-item.entity.js';
 import { UserSite } from '../users/entities/user-site.entity.js';
@@ -130,8 +130,22 @@ export class SiteExpenseService {
     const limit = Number(dto.limit) || 10;
     const skip = (page - 1) * limit;
 
+    const { startDate, endDate } = dto;
+
+    const baseWhereCondition: FindOptionsWhere<Expense> = {
+      siteId: dto.siteId,
+    };
+
+    if (startDate && endDate) {
+      baseWhereCondition.expenseDate = Between(startDate, endDate);
+    } else if (startDate) {
+      baseWhereCondition.expenseDate = MoreThanOrEqual(startDate);
+    } else if (endDate) {
+      baseWhereCondition.expenseDate = LessThanOrEqual(endDate);
+    }
+
     const [expensesLedger, totalEntries] = await this.expenseRepo.findAndCount({
-      where: { siteId: dto.siteId },
+      where: baseWhereCondition,
       relations: {
         site: { supervisor: true },
         category: true,
@@ -143,7 +157,7 @@ export class SiteExpenseService {
     });
 
     const allSiteExpenses = await this.expenseRepo.find({
-      where: { siteId: dto.siteId },
+      where: baseWhereCondition,
       relations: { category: true },
     });
 
