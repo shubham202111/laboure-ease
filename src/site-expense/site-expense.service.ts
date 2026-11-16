@@ -189,17 +189,76 @@ export class SiteExpenseService {
 
     return successResponseWithData('Site expense ledger fetched successfully.', reportData);
   }
+  // async siteExpenseCategoryReport(dto: SiteExpenseByIdDto) {
+  //   const site = await this.siteRepo.findOne({
+  //     where: { id: dto.siteId, status: UserStatus.ACTIVE }
+  //   });
+
+  //   if (!site) {
+  //     return failureResponse('Site not exists');
+  //   }
+  //   const expensesLedger = await this.expenseRepo.find({
+  //     where: { siteId: dto.siteId },
+  //     relations: {
+  //       site: { supervisor: true },
+  //       category: true,
+  //     },
+  //   });
+
+  //   const categoryMap = new Map();
+
+  //   expensesLedger.forEach((exp) => {
+  //     const categoryId = exp.category ? exp.category.id : null;
+  //     const categoryName = exp.category ? exp.category.name : 'Uncategorized';
+  //     const amount = Number(exp.totalAmount || 0);
+
+  //     // Use categoryId (or a fallback key if null) to group uniquely
+  //     const mapKey = categoryId || 'uncategorized';
+
+  //     if (!categoryMap.has(mapKey)) {
+  //       categoryMap.set(mapKey, {
+  //         categoryId,
+  //         categoryName,
+  //         totalAmount: 0,
+  //       });
+  //     }
+
+  //     categoryMap.get(mapKey).totalAmount += amount;
+  //   });
+
+  //   const categoryWiseData = Array.from(categoryMap.values());
+
+  //   return successResponseWithData('Expense report fetched successfully.', categoryWiseData);
+  // }
+
   async siteExpenseCategoryReport(dto: SiteExpenseByIdDto) {
     const site = await this.siteRepo.findOne({
-      where: { id: dto.siteId, status: UserStatus.ACTIVE }
+      where: { id: dto.siteId, status: UserStatus.ACTIVE },
+      relations: { supervisor: true },
     });
 
     if (!site) {
       return failureResponse('Site not exists');
     }
+
+    const { startDate, endDate } = dto;
+
+    const whereCondition: FindOptionsWhere<Expense> = {
+      siteId: dto.siteId,
+    };
+
+    if (startDate && endDate) {
+      whereCondition.expenseDate = Between(startDate, endDate);
+    } else if (startDate) {
+      whereCondition.expenseDate = MoreThanOrEqual(startDate);
+    } else if (endDate) {
+      whereCondition.expenseDate = LessThanOrEqual(endDate);
+    }
+
     const expensesLedger = await this.expenseRepo.find({
-      where: { siteId: dto.siteId },
+      where: whereCondition,
       relations: {
+        site: { supervisor: true },
         category: true,
       },
     });
@@ -211,7 +270,6 @@ export class SiteExpenseService {
       const categoryName = exp.category ? exp.category.name : 'Uncategorized';
       const amount = Number(exp.totalAmount || 0);
 
-      // Use categoryId (or a fallback key if null) to group uniquely
       const mapKey = categoryId || 'uncategorized';
 
       if (!categoryMap.has(mapKey)) {
@@ -227,7 +285,12 @@ export class SiteExpenseService {
 
     const categoryWiseData = Array.from(categoryMap.values());
 
-    return successResponseWithData('Expense report fetched successfully.', categoryWiseData);
+    const reportData = {
+      site,
+      categoryWiseData,
+    };
+
+    return successResponseWithData('Expense report fetched successfully.', reportData);
   }
 
   async getSiteLedger(siteId: number) {
