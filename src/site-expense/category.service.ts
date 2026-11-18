@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Category } from './entities/category.entity.js';
 import { Subcategory } from './entities/subcategory.entity.js';
-import { CreateCategoryDto, UpdateCategoryDto } from './dto/create-category.dto.js';
+import { CreateCategoryDto, RemoveSubCategoryDto, UpdateCategoryDto } from './dto/create-category.dto.js';
 import { successResponseWithData, successResponse, failureResponse, failureResponseWithError } from '../common/utils/response.helper.js';
 
 @Injectable()
@@ -92,5 +92,28 @@ export class CategoriesService {
 
     const updatedCategory = await this.findOneCategory(dto.id);
     return successResponseWithData('Category updated successfully', updatedCategory);
+  }
+  async removeSubCategory(dto: RemoveSubCategoryDto) {
+    const category = await this.categoryRepo.findOne({
+      where: { id: dto.categoryId },
+    });
+
+    if (!category) {
+      return failureResponse('Category not found');
+    }
+    const subCategory = await this.subcategoryRepo.findOne({
+      where: {
+        id: dto.subCategoryId,
+        category: { id: dto.categoryId }
+      },
+    });
+
+    if (!subCategory) {
+      return failureResponse('Subcategory not found');
+    }
+
+    await this.subcategoryRepo.delete(dto.subCategoryId);
+
+    return successResponse('Subcategory deleted successfully');
   }
 }

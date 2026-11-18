@@ -9,6 +9,8 @@ import { UserSite } from '../users/entities/user-site.entity.js';
 import { Category } from './entities/category.entity.js';
 import { successResponseWithData, successResponse, failureResponse, failureResponseWithError } from '../common/utils/response.helper.js';
 import { UserStatus } from '../enums/user-status.enum.js';
+import { User } from '../users/entities/user.entity.js';
+import { UserRole } from '../enums/user-role.enum.js';
 
 @Injectable()
 export class SiteExpenseService {
@@ -17,6 +19,7 @@ export class SiteExpenseService {
     @InjectRepository(ExpenseItem) private itemRepo: Repository<ExpenseItem>,
     @InjectRepository(UserSite) private siteRepo: Repository<UserSite>,
     @InjectRepository(Category) private categoryRepo: Repository<Category>,
+    @InjectRepository(User) private readonly userRepo: Repository<User>,
   ) { }
   async createSiteExpense(dto: CreateExpenseDto) {
     const site = await this.siteRepo.findOne({ where: { id: dto.siteId, status: UserStatus.ACTIVE } });
@@ -189,47 +192,6 @@ export class SiteExpenseService {
 
     return successResponseWithData('Site expense ledger fetched successfully.', reportData);
   }
-  // async siteExpenseCategoryReport(dto: SiteExpenseByIdDto) {
-  //   const site = await this.siteRepo.findOne({
-  //     where: { id: dto.siteId, status: UserStatus.ACTIVE }
-  //   });
-
-  //   if (!site) {
-  //     return failureResponse('Site not exists');
-  //   }
-  //   const expensesLedger = await this.expenseRepo.find({
-  //     where: { siteId: dto.siteId },
-  //     relations: {
-  //       site: { supervisor: true },
-  //       category: true,
-  //     },
-  //   });
-
-  //   const categoryMap = new Map();
-
-  //   expensesLedger.forEach((exp) => {
-  //     const categoryId = exp.category ? exp.category.id : null;
-  //     const categoryName = exp.category ? exp.category.name : 'Uncategorized';
-  //     const amount = Number(exp.totalAmount || 0);
-
-  //     // Use categoryId (or a fallback key if null) to group uniquely
-  //     const mapKey = categoryId || 'uncategorized';
-
-  //     if (!categoryMap.has(mapKey)) {
-  //       categoryMap.set(mapKey, {
-  //         categoryId,
-  //         categoryName,
-  //         totalAmount: 0,
-  //       });
-  //     }
-
-  //     categoryMap.get(mapKey).totalAmount += amount;
-  //   });
-
-  //   const categoryWiseData = Array.from(categoryMap.values());
-
-  //   return successResponseWithData('Expense report fetched successfully.', categoryWiseData);
-  // }
 
   async siteExpenseCategoryReport(dto: SiteExpenseByIdDto) {
     const site = await this.siteRepo.findOne({
@@ -240,6 +202,13 @@ export class SiteExpenseService {
     if (!site) {
       return failureResponse('Site not exists');
     }
+    const totalActiveLabourers = await this.userRepo.count({
+      where: {
+        site: { id: dto.siteId },
+        role: UserRole.LABOURER,
+        status: UserStatus.ACTIVE,
+      },
+    });
 
     const { startDate, endDate } = dto;
 
@@ -287,6 +256,7 @@ export class SiteExpenseService {
 
     const reportData = {
       site,
+      totalActiveLabourers,
       categoryWiseData,
     };
 

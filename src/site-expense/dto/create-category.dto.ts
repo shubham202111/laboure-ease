@@ -46,3 +46,13 @@ export class UpdateCategoryDto {
   @Type(() => SubcategoryItemDto)
   subcategories?: SubcategoryItemDto[];
 }
+
+export class RemoveSubCategoryDto {
+  @IsOptional()
+  @IsNumber()
+  categoryId: number;
+
+  @IsOptional()
+  @IsNumber()
+  subCategoryId: number;
+}

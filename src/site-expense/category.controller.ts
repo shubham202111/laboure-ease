@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Param, ParseIntPipe } from '@nestjs/common';
 import { CategoriesService } from './category.service.js';
-import { CreateCategoryDto, UpdateCategoryDto } from './dto/create-category.dto.js';
+import { CreateCategoryDto, RemoveSubCategoryDto, UpdateCategoryDto } from './dto/create-category.dto.js';
 
 @Controller('category')
 export class CategoriesController {
@@ -21,8 +21,8 @@ export class CategoriesController {
     return this.categoriesService.updateCategory(dto);
   }
 
-    // @Post('/delete/')
-    // async remove() {
-    //     return await this.categoriesService.removeCategory(id);
-    // }
+  @Post('/delete-subcategory')
+  async removeSubcategory(@Body() dto: RemoveSubCategoryDto) {
+    return await this.categoriesService.removeSubCategory(dto);
+  }
 }

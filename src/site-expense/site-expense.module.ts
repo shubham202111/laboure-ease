@@ -9,8 +9,9 @@ import { ExpenseItem } from './entities/expense-item.entity.js';
 import { UserSite } from '../users/entities/user-site.entity.js';
 import { CategoriesController } from './category.controller.js';
 import { CategoriesService } from './category.service.js';
+import { User } from '../users/entities/user.entity.js';
 @Module({
-  imports: [TypeOrmModule.forFeature([Category, Subcategory, Expense, ExpenseItem,UserSite])],
+  imports: [TypeOrmModule.forFeature([Category, Subcategory, Expense, ExpenseItem,UserSite, User])],
   controllers: [SiteExpenseController, CategoriesController],
   providers: [SiteExpenseService,CategoriesService],
 })
