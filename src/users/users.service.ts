@@ -41,6 +41,25 @@ export class UsersService {
         return failureResponse('User already exists');
       }
     }
+    if (dto.mobileNo) {
+      const existingUser = await this.userRepo.findOne({
+        where: { mobileNo: dto.mobileNo },
+      });
+
+      if (existingUser) {
+        return failureResponse('User already exists');
+      }
+    }
+
+    if (dto.aadharNo) {
+      const existingUser = await this.userRepo.findOne({
+        where: { aadharNo: dto.aadharNo },
+      });
+
+      if (existingUser) {
+        return failureResponse('User already exists');
+      }
+    }
 
     let siteId: number | null = null;
 

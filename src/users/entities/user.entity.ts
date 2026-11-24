@@ -16,7 +16,7 @@ export class User {
   @Column({ type: 'varchar', length: 100 })
   displayName: string;
 
-  @Column({ type: 'varchar', length: 100 })
+  @Column({ type: 'varchar', length: 100 ,unique: true})
   mobileNo: string;
 
   @Column({ type: 'varchar', length: 150,  nullable: true })
@@ -25,7 +25,7 @@ export class User {
   @Column({ type: 'varchar', length: 255, nullable: true, select: false })
   password?: string | null;
 
-  @Column({ type: 'varchar', length: 100, nullable: true })
+  @Column({ type: 'varchar', length: 100, nullable: true, unique: true })
   aadharNo?: string | null;
 
   @Column({ type: 'varchar', length: 200, nullable: true })
