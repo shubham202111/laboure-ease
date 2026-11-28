@@ -38,9 +38,6 @@ export class CreateExpenseDto {
   note?: string;
 
   @IsOptional()
-  file?: string;
-
-  @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreateSiteExpenseDto)
@@ -73,4 +70,10 @@ export class SiteExpenseByIdDto {
   @IsOptional()
   @IsString()
   endDate : Date;
+}
+export class UploadExpenseFileDto {
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  expenseId: number;
 }

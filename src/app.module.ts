@@ -8,10 +8,16 @@ import { UserSitesModule } from './user-sites/user-sites.module.js';
 import * as mysql2 from 'mysql2';
 import { AuthModule } from './auth/auth.module.js';
 import { SiteExpenseModule } from './site-expense/site-expense.module.js';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), 'uploads'),
+      serveRoot: '/uploads',
     }),
 
     // TypeOrmModule.forRootAsync({

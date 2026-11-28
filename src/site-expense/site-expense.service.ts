@@ -11,7 +11,8 @@ import { successResponseWithData, successResponse, failureResponse, failureRespo
 import { UserStatus } from '../enums/user-status.enum.js';
 import { User } from '../users/entities/user.entity.js';
 import { UserRole } from '../enums/user-role.enum.js';
-
+import { join } from 'path';
+import { unlink } from 'fs/promises';
 @Injectable()
 export class SiteExpenseService {
   constructor(
@@ -44,8 +45,7 @@ export class SiteExpenseService {
       categoryId: dto.categoryId,
       totalAmount,
       expenseDate: dto.expenseDate,
-      note: dto.note,
-      file: dto.file,
+      note: dto.note
     });
 
     const savedExpense = await this.expenseRepo.save(expense);
@@ -281,6 +281,32 @@ export class SiteExpenseService {
       expenses,
     }
     return successResponseWithData('Site ledger fetch successfullt', data);
+  }
+  async uploadExpenseFile(expenseId: number, file: Express.Multer.File) {
+    const expense = await this.expenseRepo.findOne({
+      where: { id: expenseId },
+    });
+
+    if (!expense) {
+      if (file?.path) {
+        await unlink(file.path).catch(() => undefined);
+      }
+      return failureResponse('Expense not found');
+    }
+
+    if (expense.file) {
+      const oldFilePath = join(process.cwd(), expense.file);
+      await unlink(oldFilePath).catch(() => undefined);
+    }
+
+    expense.file = `uploads/expenses/${file.filename}`;
+
+    const updatedExpense = await this.expenseRepo.save(expense);
+
+    return successResponseWithData('Expense file uploaded successfully.', {
+      id: updatedExpense.id,
+      file: updatedExpense.file,
+    });
   }
 
   findAll() {
